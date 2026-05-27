@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { User, LogOut, GraduationCap, Menu, X, ArrowLeft } from 'lucide-react';
 import GroqChat from '../common/GroqChat';
@@ -13,18 +13,14 @@ const LayoutContent = ({ user, logout }) => {
   const navigate = useNavigate();
   const role = user?.role;
 
-  // Collapse sidebar on mobile by default, expand on desktop
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIsCollapsed(true);
-      } else {
-        setIsCollapsed(false);
-      }
+  // Use useLayoutEffect to set initial state before paint
+  useLayoutEffect(() => {
+    const checkMobile = () => {
+      setIsCollapsed(window.innerWidth < 1024); // 1024px = tablet/mobile
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const mainDashboardPaths = ['/', '/student', '/lecturer', '/admin'];
