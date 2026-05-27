@@ -1,14 +1,20 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import { User, LogOut, GraduationCap, Menu, X } from 'lucide-react';
-import Chatbot from '../common/Chatbot';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { User, LogOut, GraduationCap, Menu, X, ArrowLeft } from 'lucide-react';
+import GroqChat from '../common/GroqChat';
 import NotificationBell from '../common/NotificationBell';
 import { NotificationProvider } from '../../context/NotificationContext';
+import { MeetingProvider } from '../../context/MeetingContext';
 
 const LayoutContent = ({ user, logout }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
   const role = user?.role;
+
+  const mainDashboardPaths = ['/', '/student', '/lecturer', '/admin'];
+  const showBackButton = !mainDashboardPaths.includes(location.pathname);
 
   const getNavItems = () => {
     switch (role) {
@@ -16,25 +22,23 @@ const LayoutContent = ({ user, logout }) => {
         return [
           { name: 'Book Appointment', path: '/book-appointment', icon: '📅' },
           { name: 'View Requests', path: '/view-requests', icon: '📋' },
-          { name: 'Course View', path: '/courses', icon: '📚' },
           { name: 'Live Session', path: '/live-session', icon: '🎥' },
-          { name: 'Calendar', path: '/calendar', icon: '🗓️' },
           { name: 'Total Consults', path: '/total-consults', icon: '📊' },
           { name: 'Progress Bar', path: '/progress', icon: '📈' }
         ];
       case 'lecturer':
         return [
-          { name: 'Manage Students', path: '/manage-students', icon: '👥' },
+          { name: 'View Students', path: '/view-students', icon: '👥' },
           { name: 'View Appointments', path: '/view-appointments', icon: '📅' },
-          { name: 'Course View', path: '/courses', icon: '📚' },
           { name: 'Live Session', path: '/live-session', icon: '🎥' },
-          { name: 'Calendar', path: '/calendar', icon: '🗓️' },
           { name: 'Total Consults', path: '/total-consults', icon: '📊' },
           { name: 'Progress Bar', path: '/progress', icon: '📈' }
         ];
       case 'admin':
         return [
           { name: 'Edit Users', path: '/edit-users', icon: '✏️' },
+          { name: 'All Consultations', path: '/admin/consultations', icon: '📋' },
+          { name: 'Pending Actions', path: '/admin/pending', icon: '⏳' },
           { name: 'Total Stats', path: '/total-stats', icon: '📊' },
           { name: 'Live Sessions (Weekly)', path: '/live-sessions-weekly', icon: '🎥' }
         ];
@@ -80,7 +84,18 @@ const LayoutContent = ({ user, logout }) => {
             </div>
             <nav className="p-4 space-y-2">
               {navItems.map((item) => (
-                <NavLink key={item.path} to={item.path} className={({ isActive }) => `flex items-center rounded-lg transition ${isActive ? 'bg-gradient-to-r from-honey-500 to-tomato-500 text-white shadow-md' : 'text-gray-700 hover:bg-honey-100'} ${isCollapsed ? 'justify-center p-2' : 'px-4 py-2 space-x-3'}`} title={isCollapsed ? item.name : ''}>
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center rounded-lg transition ${
+                      isActive
+                        ? 'bg-gradient-to-r from-honey-500 to-tomato-500 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-honey-100'
+                    } ${isCollapsed ? 'justify-center p-2' : 'px-4 py-2 space-x-3'}`
+                  }
+                  title={isCollapsed ? item.name : ''}
+                >
                   <span className="text-lg">{item.icon}</span>
                   {!isCollapsed && <span>{item.name}</span>}
                 </NavLink>
@@ -88,7 +103,13 @@ const LayoutContent = ({ user, logout }) => {
             </nav>
           </div>
           <div className={`p-4 border-t border-honey-100 ${isCollapsed ? 'flex justify-center' : ''}`}>
-            <button onClick={logout} className={`flex items-center gap-2 text-tomato-600 hover:bg-tomato-50 rounded-lg transition ${isCollapsed ? 'p-2 justify-center w-full' : 'px-4 py-2 w-full'}`} title={isCollapsed ? 'Logout' : ''}>
+            <button
+              onClick={logout}
+              className={`flex items-center gap-2 text-tomato-600 hover:bg-tomato-50 rounded-lg transition ${
+                isCollapsed ? 'p-2 justify-center w-full' : 'px-4 py-2 w-full'
+              }`}
+              title={isCollapsed ? 'Logout' : ''}
+            >
               <LogOut className="w-4 h-4" />
               {!isCollapsed && <span>Logout</span>}
             </button>
@@ -97,26 +118,42 @@ const LayoutContent = ({ user, logout }) => {
         <main className="flex-1 overflow-y-auto bg-honey-50">
           <div className="sticky top-0 z-10 bg-honey-50/95 backdrop-blur-sm border-b border-honey-200 py-4 px-6">
             <div className="flex items-center justify-between">
+              <div className="flex items-center w-32"></div> {/* empty spacer left */}
               <div className="flex items-center justify-center gap-2 flex-1">
                 <GraduationCap className="w-7 h-7 text-tomato-500" />
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-honey-600 to-tomato-600 bg-clip-text text-transparent">AuraConsult</h1>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-32 justify-end">
                 <NotificationBell />
               </div>
             </div>
           </div>
-          <div className="p-6"><Outlet /></div>
+          <div className="p-6">
+            {showBackButton && (
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center gap-2 text-tomato-600 hover:text-tomato-700 transition"
+                >
+                  <ArrowLeft className="w-5 h-5" /> Back
+                </button>
+                <div></div>
+              </div>
+            )}
+            <Outlet />
+          </div>
         </main>
       </div>
-      <Chatbot />
+      <GroqChat />
     </>
   );
 };
 
 const Layout = ({ user, logout }) => (
   <NotificationProvider currentUserId={user?.id}>
-    <LayoutContent user={user} logout={logout} />
+    <MeetingProvider>
+      <LayoutContent user={user} logout={logout} />
+    </MeetingProvider>
   </NotificationProvider>
 );
 

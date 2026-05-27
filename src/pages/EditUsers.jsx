@@ -1,36 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, UserPlus, Save, X } from 'lucide-react';
+import { getAllUsers, updateUser, deleteUser, addUser } from '../services/userService';
 import toast from 'react-hot-toast';
-
-const getStoredUsers = () => {
-  const stored = localStorage.getItem('aura_users');
-  if (stored) return JSON.parse(stored);
-  return [];
-};
-
-const saveUsers = (users) => localStorage.setItem('aura_users', JSON.stringify(users));
 
 const EditUsers = () => {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', role: '', department: '' });
   const [showAdd, setShowAdd] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: 'password123', role: 'student', department: '' });
 
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const allUsers = await getAllUsers();
+      setUsers(allUsers);
+    } catch (error) {
+      toast.error('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadUsers();
   }, []);
 
-  const loadUsers = () => {
-    setUsers(getStoredUsers());
-  };
-
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      const updated = users.filter(u => u.id !== id);
-      saveUsers(updated);
-      setUsers(updated);
+      await deleteUser(id);
       toast.success('User deleted');
+      loadUsers(); // refresh list and also trigger admin dashboard refresh
     }
   };
 
@@ -39,33 +40,31 @@ const EditUsers = () => {
     setEditForm({ name: user.name, email: user.email, role: user.role, department: user.department || '' });
   };
 
-  const handleUpdate = (id) => {
-    const updatedUsers = users.map(u => u.id === id ? { ...u, ...editForm } : u);
-    saveUsers(updatedUsers);
-    setUsers(updatedUsers);
+  const handleUpdate = async (id) => {
+    await updateUser(id, editForm);
     setEditingId(null);
     toast.success('User updated');
+    loadUsers();
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newUser.name || !newUser.email || !newUser.role) {
       toast.error('Please fill required fields');
       return;
     }
-    const exists = users.some(u => u.email === newUser.email);
-    if (exists) {
+    // Check if email already exists
+    if (users.some(u => u.email === newUser.email)) {
       toast.error('Email already exists');
       return;
     }
-    const newId = `${newUser.role}_${Date.now()}`;
-    const userToAdd = { ...newUser, id: newId };
-    const updated = [...users, userToAdd];
-    saveUsers(updated);
-    setUsers(updated);
+    await addUser(newUser);
     setShowAdd(false);
     setNewUser({ name: '', email: '', password: 'password123', role: 'student', department: '' });
     toast.success('User added');
+    loadUsers();
   };
+
+  if (loading) return <div className="text-center py-12"><div className="loader-sm mx-auto" /></div>;
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-honey-100">

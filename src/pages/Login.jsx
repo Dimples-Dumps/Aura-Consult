@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginWithEmail, DEMO_ACCOUNTS } from '../services/authService';
-import { GraduationCap, Mail, Lock, Eye, EyeOff, Users, UserPlus, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { loginWithEmail } from '../services/authService';
+import { GraduationCap, Mail, Lock, Eye, EyeOff, Calendar, Clock, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Login = ({ onLogin }) => {
@@ -9,7 +9,6 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showDemoInfo, setShowDemoInfo] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,21 +16,13 @@ const Login = ({ onLogin }) => {
     setLoading(true);
     const result = await loginWithEmail(email, password);
     if (result.success) {
-      toast.success(`Welcome back, ${result.user.name}! 🍯🍅`);
+      toast.success(`Welcome back, ${result.user.name}! `);
       onLogin(result.user);
       navigate('/');
     } else {
       toast.error('Invalid email or password');
       setLoading(false);
     }
-  };
-
-  // Only populate fields, do NOT auto‑login
-  const handleDemoClick = (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    // Optional: show a small hint that form is filled
-    toast.success(`Credentials filled for ${demoEmail}`, { icon: '✏️' });
   };
 
   return (
@@ -130,7 +121,6 @@ const Login = ({ onLogin }) => {
               </button>
             </form>
 
-            {/* Forgot Password & Sign Up links */}
             <div className="text-center mt-4">
               <Link to="/forgot-password" className="text-sm text-tomato-600 hover:text-tomato-700">
                 Forgot password?
@@ -141,64 +131,6 @@ const Login = ({ onLogin }) => {
               <Link to="/signup" className="text-tomato-600 hover:text-tomato-700 font-medium">
                 Sign up
               </Link>
-            </div>
-
-            <div className="mt-6">
-              <button
-                onClick={() => setShowDemoInfo(!showDemoInfo)}
-                className="w-full flex items-center justify-center gap-2 text-tomato-600 hover:text-tomato-700 transition text-sm font-medium"
-              >
-                <Users className="w-4 h-4" />
-                {showDemoInfo ? 'Hide Demo Accounts' : 'Show Demo Accounts'}
-                <UserPlus className="w-4 h-4" />
-              </button>
-
-              {showDemoInfo && (
-                <div className="mt-4 space-y-3 animate-fade-in">
-                  <div className="bg-honey-50 rounded-xl p-3 border border-honey-200">
-                    <p className="text-honey-800 text-sm font-semibold mb-2">🎓 STUDENTS</p>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {DEMO_ACCOUNTS.students.map((student) => (
-                        <button
-                          key={student.id}
-                          onClick={() => handleDemoClick(student.email, 'password123')}
-                          className="text-left text-gray-700 hover:text-tomato-600 hover:bg-honey-100 px-2 py-1 rounded transition text-sm truncate"
-                        >
-                          {student.email}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="bg-orange-50 rounded-xl p-3 border border-tomato-200">
-                    <p className="text-tomato-800 text-sm font-semibold mb-2">👨‍🏫 LECTURERS</p>
-                    <div className="space-y-1 text-sm">
-                      {DEMO_ACCOUNTS.lecturers.map((lecturer) => (
-                        <button
-                          key={lecturer.id}
-                          onClick={() => handleDemoClick(lecturer.email, 'password123')}
-                          className="block w-full text-left text-gray-700 hover:text-tomato-600 hover:bg-orange-100 px-2 py-1 rounded transition text-sm truncate"
-                        >
-                          {lecturer.email}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                    <p className="text-amber-800 text-sm font-semibold mb-2">👑 ADMINS</p>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {DEMO_ACCOUNTS.admins?.map((admin) => (
-                        <button
-                          key={admin.id}
-                          onClick={() => handleDemoClick(admin.email, 'password123')}
-                          className="text-left text-gray-700 hover:text-tomato-600 hover:bg-amber-100 px-2 py-1 rounded transition text-sm truncate"
-                        >
-                          {admin.email}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

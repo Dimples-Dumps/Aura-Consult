@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, User } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
+import { getAllStudents } from '../services/userService';
 import toast from 'react-hot-toast';
 
-const getStoredUsers = () => JSON.parse(localStorage.getItem('aura_users') || '[]');
-const saveUsers = (users) => localStorage.setItem('aura_users', JSON.stringify(users));
-
-const ManageStudents = () => {
+const ViewStudents = () => {
   const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editDepartment, setEditDepartment] = useState('');
@@ -15,17 +14,22 @@ const ManageStudents = () => {
     loadStudents();
   }, []);
 
-  const loadStudents = () => {
-    const all = getStoredUsers();
-    setStudents(all.filter(u => u.role === 'student'));
+  const loadStudents = async () => {
+    setLoading(true);
+    try {
+      const allStudents = await getAllStudents();
+      setStudents(allStudents);
+    } catch (error) {
+      console.error('Failed to load students:', error);
+      toast.error('Failed to load students');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Delete this student?')) {
-      const updated = getStoredUsers().filter(u => u.id !== id);
-      saveUsers(updated);
-      loadStudents();
-      toast.success('Student deleted');
+    if (window.confirm('Delete this student? This action cannot be undone.')) {
+      toast.error('Delete is disabled in demo mode. In production, this would remove the student.');
     }
   };
 
@@ -35,14 +39,16 @@ const ManageStudents = () => {
     setEditDepartment(student.department || '');
   };
 
-  const handleUpdate = (id) => {
-    const all = getStoredUsers();
-    const updated = all.map(u => u.id === id ? { ...u, name: editName, department: editDepartment } : u);
-    saveUsers(updated);
+  const handleUpdate = async (id) => {
+    const updated = students.map(s => s.id === id ? { ...s, name: editName, department: editDepartment } : s);
+    setStudents(updated);
     setEditingId(null);
-    loadStudents();
-    toast.success('Student updated');
+    toast.success('Student updated (demo only, changes not persisted)');
   };
+
+  if (loading) {
+    return <div className="bg-white rounded-xl p-6 text-center"><div className="loader-sm mx-auto" /></div>;
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-honey-100">
@@ -80,4 +86,4 @@ const ManageStudents = () => {
   );
 };
 
-export default ManageStudents;
+export default ViewStudents;

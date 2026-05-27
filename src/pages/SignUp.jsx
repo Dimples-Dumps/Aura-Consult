@@ -1,3 +1,4 @@
+// src/pages/SignUp.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, User, Mail, Lock, Building, BookOpen, ArrowLeft, CheckCircle, Briefcase, Calendar, Award, Shield } from 'lucide-react';
@@ -78,14 +79,22 @@ const SignUp = () => {
       studentId: formData.studentId,
       specialization: formData.specialization
     };
-    const result = signup(userData);
-    if (result.success) {
-      toast.success('Account created successfully! Welcome!');
-      setTimeout(() => navigate('/'), 1500);
-    } else {
-      toast.error(result.error);
+    
+    try {
+      const result = await signup(userData);
+      if (result.success) {
+        toast.success('Account created successfully! Welcome!');
+        // Navigate to dashboard after a short delay
+        setTimeout(() => navigate('/'), 1500);
+      } else {
+        toast.error(result.error);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const roles = [
