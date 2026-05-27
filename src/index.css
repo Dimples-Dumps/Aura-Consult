@@ -122,3 +122,32 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .stats-card {
+    padding: 0.75rem;
+  }
+  .stats-card p:first-child {
+    font-size: 0.7rem;
+  }
+  .stats-card .text-2xl {
+    font-size: 1.25rem;
+  }
+  .stats-card .text-xs {
+    font-size: 0.6rem;
+  }
+  .grid-cols-1.md\\:grid-cols-4 {
+    gap: 0.5rem;
+  }
+  .p-6 {
+    padding: 1rem;
+  }
+  .rounded-2xl {
+    border-radius: 1rem;
+  }
+}
