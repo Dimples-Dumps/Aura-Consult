@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { User, LogOut, GraduationCap, Menu, X, ArrowLeft } from 'lucide-react';
 import GroqChat from '../common/GroqChat';
@@ -12,6 +12,20 @@ const LayoutContent = ({ user, logout }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const role = user?.role;
+
+  // Collapse sidebar on mobile by default, expand on desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(true);
+      } else {
+        setIsCollapsed(false);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const mainDashboardPaths = ['/', '/student', '/lecturer', '/admin'];
   const showBackButton = !mainDashboardPaths.includes(location.pathname);
@@ -28,9 +42,11 @@ const LayoutContent = ({ user, logout }) => {
         ];
       case 'lecturer':
         return [
-          { name: 'View Students', path: '/view-students', icon: '👥' },
+          { name: 'Manage Students', path: '/manage-students', icon: '👥' },
           { name: 'View Appointments', path: '/view-appointments', icon: '📅' },
+          { name: 'Course View', path: '/courses', icon: '📚' },
           { name: 'Live Session', path: '/live-session', icon: '🎥' },
+          { name: 'Calendar', path: '/calendar', icon: '🗓️' },
           { name: 'Total Consults', path: '/total-consults', icon: '📊' },
           { name: 'Progress Bar', path: '/progress', icon: '📈' }
         ];
@@ -51,18 +67,18 @@ const LayoutContent = ({ user, logout }) => {
 
   return (
     <>
-      <div className="flex h-screen bg-honey-50">
-        <aside className={`bg-white shadow-xl flex flex-col justify-between border-r border-honey-200 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+      <div className="flex h-screen bg-gray-50">
+        <aside className={`bg-white shadow-xl flex flex-col justify-between border-r border-gray-200 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
           <div>
-            <div className="p-2 flex justify-end border-b border-honey-100">
-              <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-lg hover:bg-honey-100 transition">
-                {isCollapsed ? <Menu className="w-5 h-5 text-tomato-500" /> : <X className="w-5 h-5 text-tomato-500" />}
+            <div className="p-2 flex justify-end border-b border-gray-100">
+              <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-lg hover:bg-gray-100 transition">
+                {isCollapsed ? <Menu className="w-5 h-5 text-blue-600" /> : <X className="w-5 h-5 text-blue-600" />}
               </button>
             </div>
-            <div className="p-4 border-b border-honey-100">
+            <div className="p-4 border-b border-gray-100">
               <div className="relative">
-                <button onClick={() => setIsProfileOpen(!isProfileOpen)} className={`flex items-center w-full text-left focus:outline-none hover:bg-honey-50 p-2 rounded-lg transition ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-honey-400 to-tomato-500 flex items-center justify-center text-white flex-shrink-0">
+                <button onClick={() => setIsProfileOpen(!isProfileOpen)} className={`flex items-center w-full text-left focus:outline-none hover:bg-gray-50 p-2 rounded-lg transition ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
                     <User className="w-5 h-5" />
                   </div>
                   {!isCollapsed && (
@@ -74,7 +90,7 @@ const LayoutContent = ({ user, logout }) => {
                   {!isCollapsed && <span className="text-gray-400 text-xs">▼</span>}
                 </button>
                 {isProfileOpen && !isCollapsed && (
-                  <div className="absolute left-0 right-0 mt-2 bg-white border border-honey-200 rounded-lg shadow-lg z-20 p-3">
+                  <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-3">
                     <p className="text-sm"><strong>Name:</strong> {user?.name}</p>
                     <p className="text-sm"><strong>Email:</strong> {user?.email || 'user@example.com'}</p>
                     <p className="text-sm"><strong>Role:</strong> {role}</p>
@@ -90,8 +106,8 @@ const LayoutContent = ({ user, logout }) => {
                   className={({ isActive }) =>
                     `flex items-center rounded-lg transition ${
                       isActive
-                        ? 'bg-gradient-to-r from-honey-500 to-tomato-500 text-white shadow-md'
-                        : 'text-gray-700 hover:bg-honey-100'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-100'
                     } ${isCollapsed ? 'justify-center p-2' : 'px-4 py-2 space-x-3'}`
                   }
                   title={isCollapsed ? item.name : ''}
@@ -102,10 +118,10 @@ const LayoutContent = ({ user, logout }) => {
               ))}
             </nav>
           </div>
-          <div className={`p-4 border-t border-honey-100 ${isCollapsed ? 'flex justify-center' : ''}`}>
+          <div className={`p-4 border-t border-gray-100 ${isCollapsed ? 'flex justify-center' : ''}`}>
             <button
               onClick={logout}
-              className={`flex items-center gap-2 text-tomato-600 hover:bg-tomato-50 rounded-lg transition ${
+              className={`flex items-center gap-2 text-red-600 hover:bg-red-50 rounded-lg transition ${
                 isCollapsed ? 'p-2 justify-center w-full' : 'px-4 py-2 w-full'
               }`}
               title={isCollapsed ? 'Logout' : ''}
@@ -115,13 +131,22 @@ const LayoutContent = ({ user, logout }) => {
             </button>
           </div>
         </aside>
-        <main className="flex-1 overflow-y-auto bg-honey-50">
-          <div className="sticky top-0 z-10 bg-honey-50/95 backdrop-blur-sm border-b border-honey-200 py-4 px-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200 py-4 px-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center w-32"></div> {/* empty spacer left */}
+              <div className="flex items-center w-32">
+                {showBackButton && (
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition"
+                  >
+                    <ArrowLeft className="w-5 h-5" /> Back
+                  </button>
+                )}
+              </div>
               <div className="flex items-center justify-center gap-2 flex-1">
-                <GraduationCap className="w-7 h-7 text-tomato-500" />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-honey-600 to-tomato-600 bg-clip-text text-transparent">AuraConsult</h1>
+                <GraduationCap className="w-7 h-7 text-blue-600" />
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">AuraConsult</h1>
               </div>
               <div className="flex items-center gap-2 w-32 justify-end">
                 <NotificationBell />
@@ -129,17 +154,6 @@ const LayoutContent = ({ user, logout }) => {
             </div>
           </div>
           <div className="p-6">
-            {showBackButton && (
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="flex items-center gap-2 text-tomato-600 hover:text-tomato-700 transition"
-                >
-                  <ArrowLeft className="w-5 h-5" /> Back
-                </button>
-                <div></div>
-              </div>
-            )}
             <Outlet />
           </div>
         </main>
